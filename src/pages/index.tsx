@@ -5,10 +5,14 @@ import { useKeenSlider } from "keen-slider/react";
 import Stripe from "stripe";
 import Link from "next/link";
 
+import { useContext } from "react";
+import { Contexto } from "../contexts/Context";
+
 import { HomeContainer, Product } from "../styles/pages/home";
 import { stripe } from "../lib/stripe";
 
 import Image from "next/image";
+import Bag from "../assets/Bag.svg";
 
 interface HomeProps {
   products: {
@@ -27,19 +31,19 @@ export default function Home({ products }: HomeProps) {
     },
   });
 
+  const { state, setState } = useContext(Contexto);
+
   return (
     <>
       <Head>
         <title>Home | Ignite Shop</title>
       </Head>
+      {/* <p>{state}</p>
+      <button onClick={handleClick}>Click</button> */}
       <HomeContainer ref={sliderRef} className="keen-slider">
         {products.map((product) => {
           return (
-            <Link
-              href={`/product/${product.id}`}
-              key={product.id}
-              prefetch={false}
-            >
+            <>
               <Product className="keen-slider__slide">
                 <Image
                   src={product.imageUrl}
@@ -48,11 +52,19 @@ export default function Home({ products }: HomeProps) {
                   height={480}
                 />
                 <footer>
-                  <strong>{product.name}</strong>
-                  <span>{product.price}</span>
+                  <div>
+                    <strong>{product.name}</strong>
+                    <span>{product.price}</span>
+                  </div>
+                  <Link
+                    href={`/product/${product.id}`}
+                    onClick={() => setState(state + 1)}
+                  >
+                    <Image src={Bag} alt="" />
+                  </Link>
                 </footer>
               </Product>
-            </Link>
+            </>
           );
         })}
       </HomeContainer>
