@@ -3,12 +3,11 @@ import Head from "next/head";
 import "keen-slider/keen-slider.min.css";
 import { useKeenSlider } from "keen-slider/react";
 import Stripe from "stripe";
-import Link from "next/link";
 
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Contexto } from "../contexts/Context";
 
-import { HomeContainer, Product } from "../styles/pages/home";
+import { ButtonBuy, HomeContainer, Product } from "../styles/pages/home";
 import { stripe } from "../lib/stripe";
 
 import Image from "next/image";
@@ -24,6 +23,8 @@ interface HomeProps {
 }
 
 export default function Home({ products }: HomeProps) {
+  const { setState } = useContext(Contexto);
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [sliderRef] = useKeenSlider({
     slides: {
       perView: 3,
@@ -31,7 +32,15 @@ export default function Home({ products }: HomeProps) {
     },
   });
 
-  const { state, setState } = useContext(Contexto);
+  useEffect(() => {
+    setState(selectedProducts.length);
+  }, [selectedProducts, setState]);
+
+  function handleClick(product: any) {
+    if (!selectedProducts.includes(product)) {
+      setSelectedProducts([...selectedProducts, product]);
+    }
+  }
 
   return (
     <>
@@ -56,12 +65,9 @@ export default function Home({ products }: HomeProps) {
                     <strong>{product.name}</strong>
                     <span>{product.price}</span>
                   </div>
-                  <Link
-                    href={`/product/${product.id}`}
-                    onClick={() => setState(state + 1)}
-                  >
+                  <ButtonBuy onClick={() => handleClick(product)}>
                     <Image src={Bag} alt="" />
-                  </Link>
+                  </ButtonBuy>
                 </footer>
               </Product>
             </>

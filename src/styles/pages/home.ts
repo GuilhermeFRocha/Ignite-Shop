@@ -65,3 +65,14 @@ export const Product = styled("div", {
     },
   },
 });
+
+export const ButtonBuy = styled("button", {
+  border: "none",
+  backgroundColor: "transparent",
+  cursor: "pointer",
+
+  "&:hover": {
+    opacity: 0.8,
+    transition: "0.2s",
+  },
+});
