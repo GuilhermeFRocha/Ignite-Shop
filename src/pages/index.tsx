@@ -14,7 +14,6 @@ import Image from "next/image";
 import Bag from "../assets/Bag.svg";
 
 import Modal from "react-modal";
-import "../styles/pages/modal.css";
 
 interface HomeProps {
   products: {
