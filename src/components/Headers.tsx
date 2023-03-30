@@ -11,7 +11,11 @@ import { BagHeader, Head } from "../styles/pages/app";
 import Link from "next/link";
 
 const Headers = () => {
-  const { state } = useContext(Contexto);
+  const { state, setOpenModal, isOpenModal } = useContext(Contexto);
+
+  function handleOpen() {
+    setOpenModal(!isOpenModal);
+  }
 
   return (
     <Head>
@@ -19,7 +23,7 @@ const Headers = () => {
         <Image src={logoImg} alt="" />
       </Link>
 
-      <BagHeader>
+      <BagHeader onClick={handleOpen}>
         <Image src={BagBuy} alt="" />
         <p>{state}</p>
       </BagHeader>

@@ -17,8 +17,11 @@ export const Head = styled("header", {
   justifyContent: "space-between",
 });
 
-export const BagHeader = styled("div", {
+export const BagHeader = styled("button", {
   position: "relative",
+  border: "none",
+  backgroundColor: "transparent",
+  cursor: "pointer",
 
   p: {
     position: "absolute",

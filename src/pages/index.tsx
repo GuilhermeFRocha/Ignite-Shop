@@ -1,10 +1,10 @@
+import { useContext, useEffect, useState } from "react";
 import { GetStaticProps } from "next";
 import Head from "next/head";
 import "keen-slider/keen-slider.min.css";
 import { useKeenSlider } from "keen-slider/react";
 import Stripe from "stripe";
 
-import { useContext, useEffect, useState } from "react";
 import { Contexto } from "../contexts/Context";
 
 import { ButtonBuy, HomeContainer, Product } from "../styles/pages/home";
@@ -12,6 +12,9 @@ import { stripe } from "../lib/stripe";
 
 import Image from "next/image";
 import Bag from "../assets/Bag.svg";
+
+import Modal from "react-modal";
+import "../styles/pages/modal.css";
 
 interface HomeProps {
   products: {
@@ -42,13 +45,17 @@ export default function Home({ products }: HomeProps) {
     }
   }
 
+  const { isOpenModal, setOpenModal } = useContext(Contexto);
+
+  function handleCloseModal() {
+    setOpenModal(false);
+  }
+
   return (
     <>
       <Head>
         <title>Home | Ignite Shop</title>
       </Head>
-      {/* <p>{state}</p>
-      <button onClick={handleClick}>Click</button> */}
       <HomeContainer ref={sliderRef} className="keen-slider">
         {products.map((product) => {
           return (
@@ -74,6 +81,25 @@ export default function Home({ products }: HomeProps) {
           );
         })}
       </HomeContainer>
+
+      {isOpenModal && (
+        <Modal
+          isOpen={isOpenModal}
+          onRequestClose={handleCloseModal}
+          style={{
+            content: {
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+            },
+            overlay: {
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+            },
+          }}
+        >
+          {/* Conteúdo do modal */}
+        </Modal>
+      )}
     </>
   );
 }
