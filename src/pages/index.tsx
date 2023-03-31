@@ -13,7 +13,14 @@ import { stripe } from "../lib/stripe";
 import Image from "next/image";
 import Bag from "../assets/Bag.svg";
 
-import Modal from "react-modal";
+import {
+  BackImage,
+  DescProductModal,
+  ModalContainer,
+  ModalContent,
+  ModalFooter,
+  MsgErrorModal,
+} from "../styles/pages/modal";
 
 interface HomeProps {
   products: {
@@ -50,6 +57,12 @@ export default function Home({ products }: HomeProps) {
     setOpenModal(false);
   }
 
+  const PriceTotal = selectedProducts
+    .reduce((acc, curr) => {
+      return acc + parseFloat(curr.price.replace(",", ".").replace("R$", ""));
+    }, 0)
+    .toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
   return (
     <>
       <Head>
@@ -82,22 +95,67 @@ export default function Home({ products }: HomeProps) {
       </HomeContainer>
 
       {isOpenModal && (
-        <Modal
+        <ModalContainer
           isOpen={isOpenModal}
           onRequestClose={handleCloseModal}
           style={{
-            content: {
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-            },
             overlay: {
               backgroundColor: "rgba(0, 0, 0, 0.5)",
             },
           }}
         >
-          {/* Conteúdo do modal */}
-        </Modal>
+          <h2
+            style={{
+              textAlign: "center",
+              paddingTop: "70px",
+              paddingBottom: "8px",
+            }}
+          >
+            Sacola de Compras
+          </h2>
+
+          {selectedProducts.length ? (
+            selectedProducts.map((produc) => {
+              return (
+                <ModalContent key={produc.id}>
+                  <BackImage>
+                    <Image
+                      src={produc.imageUrl}
+                      alt="camiseta"
+                      width={100}
+                      height={90}
+                    />
+                  </BackImage>
+
+                  <DescProductModal>
+                    <strong>{produc.name}</strong>
+                    <span>{produc.price}</span>
+                    <button>Remover</button>
+                  </DescProductModal>
+                </ModalContent>
+              );
+            })
+          ) : (
+            <MsgErrorModal>
+              <p>Você não possui produto no carrinho.</p>
+            </MsgErrorModal>
+          )}
+
+          {selectedProducts.length > 0 && (
+            <ModalFooter>
+              <div>
+                <p>Quantidade:</p>
+                <span>{selectedProducts.length} itens</span>
+              </div>
+              <div>
+                <p>Valor total:</p>
+                <strong>{PriceTotal}</strong>
+              </div>
+
+              <button>Finalizar Compra</button>
+            </ModalFooter>
+          )}
+        </ModalContainer>
       )}
     </>
   );
