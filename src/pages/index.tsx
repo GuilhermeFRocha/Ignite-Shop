@@ -21,6 +21,7 @@ import {
   ModalFooter,
   MsgErrorModal,
 } from "../styles/pages/modal";
+import axios from "axios";
 
 interface HomeProps {
   products: {
@@ -33,6 +34,8 @@ interface HomeProps {
 
 export default function Home({ products }: HomeProps) {
   const { setState } = useContext(Contexto);
+  const [isCreatingCheckoutSession, setCreatingCheckoutSession] =
+  useState(false);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [sliderRef] = useKeenSlider({
     slides: {
@@ -63,6 +66,31 @@ export default function Home({ products }: HomeProps) {
     }, 0)
     .toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+    async function handleBuyProduct() {
+      try {
+        setCreatingCheckoutSession(true);
+        const response = await axios.post("/api/checkout", {
+          priceIds: selectedProducts
+        });
+        
+        const { checkoutUrl } = response.data;
+        window.location.href = checkoutUrl;
+      } catch (err) {
+        setCreatingCheckoutSession(false);
+        
+        alert("Falha ao redirecionar");
+      }
+    }
+
+    function handleDeleteProduct (produc) {
+      const deleteProduct = selectedProducts.filter((allProduc)=> {
+        return allProduc !== produc
+      })
+      setSelectedProducts(deleteProduct)
+    }
+
+    console.log(selectedProducts);
+    
   return (
     <>
       <Head>
@@ -130,7 +158,7 @@ export default function Home({ products }: HomeProps) {
                   <DescProductModal>
                     <strong>{produc.name}</strong>
                     <span>{produc.price}</span>
-                    <button>Remover</button>
+                    <button onClick={() => handleDeleteProduct(produc)}>Remover</button>
                   </DescProductModal>
                 </ModalContent>
               );
@@ -152,7 +180,7 @@ export default function Home({ products }: HomeProps) {
                 <strong>{PriceTotal}</strong>
               </div>
 
-              <button>Finalizar Compra</button>
+              <button onClick={handleBuyProduct}>Finalizar Compra</button>
             </ModalFooter>
           )}
         </ModalContainer>
