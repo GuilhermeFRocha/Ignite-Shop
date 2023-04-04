@@ -1,5 +1,10 @@
-import { useState } from "react";
-import axios from "axios";
+import {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { GetStaticPaths, GetStaticProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
@@ -11,6 +16,8 @@ import {
   ProductContainer,
   ProductDetails,
 } from "../../styles/pages/product";
+import { Cart } from "../../components/Cart";
+import { Contexto } from "../../contexts/Context";
 
 interface ProductProps {
   product: {
@@ -24,28 +31,35 @@ interface ProductProps {
 }
 
 export default function Product({ product }: ProductProps) {
+  const { setState, selectedProducts, setSelectedProducts } =
+    useContext(Contexto);
   const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] =
     useState(false);
 
-  console.log(product);
+  const idsProducts = selectedProducts.map((ids) => {
+    return ids.id;
+  });
 
-  async function handleBuyButton() {
-    try {
-      setIsCreatingCheckoutSession(true);
+  const [addedProducts, setAddedProducts] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const setSelectedProductsState: Dispatch<SetStateAction<ProductProps[]>> =
+    setSelectedProducts;
 
-      const response = await axios.post("/api/checkout", {
-        priceId: product.defaultPriceId,
-      });
+  async function handleBuyButton(event: any, product: any) {
+    event.preventDefault();
 
-      const { checkoutUrl } = response.data;
-
-      window.location.href = checkoutUrl;
-    } catch (err) {
-      setIsCreatingCheckoutSession(false);
-
-      alert("Falha ao redirecionar ao checkout!");
+    if (!idsProducts.includes(product.id)) {
+      if (!selectedProducts.includes(product)) {
+        setSelectedProductsState([...selectedProducts, product]);
+        setAddedProducts({ ...addedProducts, [product.id]: true });
+      }
     }
   }
+
+  useEffect(() => {
+    setState(selectedProducts.length);
+  }, [selectedProducts, setState]);
 
   return (
     <>
@@ -65,13 +79,17 @@ export default function Product({ product }: ProductProps) {
           <p>{product.description}</p>
 
           <button
-            disabled={isCreatingCheckoutSession}
-            onClick={handleBuyButton}
+            onClick={(event) => handleBuyButton(event, product)}
+            disabled={idsProducts.includes(product.id)}
           >
             Comprar agora
           </button>
         </ProductDetails>
       </ProductContainer>
+      <Cart
+        selectedProducts={selectedProducts}
+        setSelectedProducts={setSelectedProducts}
+      />
     </>
   );
 }

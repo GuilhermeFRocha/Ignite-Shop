@@ -5,6 +5,8 @@ interface ContextType {
   setState: React.Dispatch<React.SetStateAction<number>>;
   isOpenModal: boolean;
   setOpenModal: (isOpen: boolean) => void;
+  selectedProducts: any;
+  setSelectedProducts: React.Dispatch<React.SetStateAction<[]>>;
 }
 
 export const Contexto = createContext<ContextType>({
@@ -12,6 +14,8 @@ export const Contexto = createContext<ContextType>({
   setState: () => {},
   isOpenModal: false,
   setOpenModal: () => {},
+  selectedProducts: [],
+  setSelectedProducts: () => {},
 });
 
 type Props = {
@@ -21,12 +25,15 @@ type Props = {
 export const ContextoProvider = ({ children }: Props) => {
   const [state, setState] = useState(0);
   const [isOpenModal, setOpenModal] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState([]);
 
   const value: ContextType = {
     state,
     setState,
     isOpenModal,
     setOpenModal,
+    selectedProducts,
+    setSelectedProducts,
   };
 
   return <Contexto.Provider value={value}>{children}</Contexto.Provider>;

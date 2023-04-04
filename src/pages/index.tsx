@@ -1,4 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { GetStaticProps } from "next";
 import Head from "next/head";
 import "keen-slider/keen-slider.min.css";
@@ -29,17 +35,24 @@ interface ProductProps {
 }
 
 export default function Home({ products }: HomeProps) {
-  const { setState } = useContext(Contexto);
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  const { setState, selectedProducts, setSelectedProducts } =
+    useContext(Contexto);
+
   const [addedProducts, setAddedProducts] = useState<{
     [key: string]: boolean;
   }>({});
+  const setSelectedProductsState: Dispatch<SetStateAction<ProductProps[]>> =
+    setSelectedProducts;
 
   const [sliderRef] = useKeenSlider({
     slides: {
       perView: 3,
       spacing: 48,
     },
+  });
+
+  const idsProducts = selectedProducts.map((ids) => {
+    return ids.id;
   });
 
   useEffect(() => {
@@ -49,8 +62,10 @@ export default function Home({ products }: HomeProps) {
   function handleClick(event: any, product: ProductProps) {
     event.preventDefault();
     if (!selectedProducts.includes(product)) {
-      setSelectedProducts([...selectedProducts, product]);
-      setAddedProducts({ ...addedProducts, [product.id]: true });
+      if (!idsProducts.includes(product.id)) {
+        setSelectedProductsState([...selectedProducts, product]);
+        setAddedProducts({ ...addedProducts, [product.id]: true });
+      }
     }
   }
 
@@ -81,7 +96,7 @@ export default function Home({ products }: HomeProps) {
                     <span>{product.price}</span>
                   </div>
                   <ButtonBuy
-                    disabled={addedProducts[product.id]}
+                    disabled={idsProducts.includes(product.id)}
                     onClick={(event) => handleClick(event, product)}
                   >
                     <Image src={Bag} alt="" />
