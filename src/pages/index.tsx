@@ -4,12 +4,9 @@ import Head from "next/head";
 import "keen-slider/keen-slider.min.css";
 import { useKeenSlider } from "keen-slider/react";
 import Stripe from "stripe";
-
 import { Contexto } from "../contexts/Context";
-
 import { ButtonBuy, HomeContainer, Product } from "../styles/pages/home";
 import { stripe } from "../lib/stripe";
-
 import Image from "next/image";
 import Bag from "../assets/Bag.svg";
 
@@ -22,6 +19,7 @@ import {
   MsgErrorModal,
 } from "../styles/pages/modal";
 import axios from "axios";
+import Link from "next/link";
 
 interface HomeProps {
   products: {
@@ -32,11 +30,23 @@ interface HomeProps {
   }[];
 }
 
+interface ProductProps {
+  id: string;
+  name: string;
+  imageUrl: string;
+  price: string;
+}
+
 export default function Home({ products }: HomeProps) {
   const { setState } = useContext(Contexto);
-  const [isCreatingCheckoutSession, setCreatingCheckoutSession] =
-  useState(false);
+  const { isOpenModal, setOpenModal } = useContext(Contexto);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [isCreatingCheckoutSession, setCreatingCheckoutSession] =
+    useState(false);
+  const [addedProducts, setAddedProducts] = useState<{
+    [key: string]: boolean;
+  }>({});
+
   const [sliderRef] = useKeenSlider({
     slides: {
       perView: 3,
@@ -48,13 +58,13 @@ export default function Home({ products }: HomeProps) {
     setState(selectedProducts.length);
   }, [selectedProducts, setState]);
 
-  function handleClick(product: any) {
+  function handleClick(event: any, product: ProductProps) {
+    event.preventDefault();
     if (!selectedProducts.includes(product)) {
       setSelectedProducts([...selectedProducts, product]);
+      setAddedProducts({ ...addedProducts, [product.id]: true });
     }
   }
-
-  const { isOpenModal, setOpenModal } = useContext(Contexto);
 
   function handleCloseModal() {
     setOpenModal(false);
@@ -66,40 +76,42 @@ export default function Home({ products }: HomeProps) {
     }, 0)
     .toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    async function handleBuyProduct() {
-      try {
-        setCreatingCheckoutSession(true);
-        const response = await axios.post("/api/checkout", {
-          priceIds: selectedProducts
-        });
-        
-        const { checkoutUrl } = response.data;
-        window.location.href = checkoutUrl;
-      } catch (err) {
-        setCreatingCheckoutSession(false);
-        
-        alert("Falha ao redirecionar");
-      }
-    }
+  async function handleBuyProduct() {
+    try {
+      setCreatingCheckoutSession(true);
+      const response = await axios.post("/api/checkout", {
+        priceId: selectedProducts,
+      });
 
-    function handleDeleteProduct (produc) {
-      const deleteProduct = selectedProducts.filter((allProduc)=> {
-        return allProduc !== produc
-      })
-      setSelectedProducts(deleteProduct)
-    }
+      const { checkoutUrl } = response.data;
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setCreatingCheckoutSession(false);
 
-    console.log(selectedProducts);
-    
+      alert("Falha ao redirecionar");
+    }
+  }
+
+  function handleDeleteProduct(produc) {
+    const deleteProduct = selectedProducts.filter((allProduc) => {
+      return allProduc !== produc;
+    });
+    setSelectedProducts(deleteProduct);
+  }
   return (
     <>
       <Head>
         <title>Home | Ignite Shop</title>
       </Head>
+
       <HomeContainer ref={sliderRef} className="keen-slider">
         {products.map((product) => {
           return (
-            <>
+            <Link
+              key={product.id}
+              href={`/product/${product.id}`}
+              prefetch={false}
+            >
               <Product className="keen-slider__slide">
                 <Image
                   src={product.imageUrl}
@@ -112,12 +124,15 @@ export default function Home({ products }: HomeProps) {
                     <strong>{product.name}</strong>
                     <span>{product.price}</span>
                   </div>
-                  <ButtonBuy onClick={() => handleClick(product)}>
+                  <ButtonBuy
+                    disabled={addedProducts[product.id]}
+                    onClick={(event) => handleClick(event, product)}
+                  >
                     <Image src={Bag} alt="" />
                   </ButtonBuy>
                 </footer>
               </Product>
-            </>
+            </Link>
           );
         })}
       </HomeContainer>
@@ -158,7 +173,9 @@ export default function Home({ products }: HomeProps) {
                   <DescProductModal>
                     <strong>{produc.name}</strong>
                     <span>{produc.price}</span>
-                    <button onClick={() => handleDeleteProduct(produc)}>Remover</button>
+                    <button onClick={() => handleDeleteProduct(produc)}>
+                      Remover
+                    </button>
                   </DescProductModal>
                 </ModalContent>
               );
@@ -205,6 +222,8 @@ export const getStaticProps: GetStaticProps = async () => {
         style: "currency",
         currency: "BRL",
       }).format(price.unit_amount! / 100),
+      priceNumber: price.unit_amount,
+      defaultPriceId: price.id,
     };
   });
 

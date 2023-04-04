@@ -1,6 +1,16 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { stripe } from "../../lib/stripe";
 
+interface ProductProps {
+  id: string;
+  name: string;
+  imageUrl: string;
+  price: string;
+  priceNumber: number;
+  description: string;
+  defaultPriceId: string;
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -22,12 +32,10 @@ export default async function handler(
     success_url: successUrl,
     cancel_url: cancelUrl,
     mode: "payment",
-    line_items: [
-      {
-        price: priceId,
-        quantity: 1,
-      },
-    ],
+    line_items: priceId.map((product: ProductProps) => ({
+      price: product.defaultPriceId,
+      quantity: 1,
+    })),
   });
 
   return res.status(201).json({
