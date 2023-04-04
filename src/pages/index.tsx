@@ -9,17 +9,8 @@ import { ButtonBuy, HomeContainer, Product } from "../styles/pages/home";
 import { stripe } from "../lib/stripe";
 import Image from "next/image";
 import Bag from "../assets/Bag.svg";
-
-import {
-  BackImage,
-  DescProductModal,
-  ModalContainer,
-  ModalContent,
-  ModalFooter,
-  MsgErrorModal,
-} from "../styles/pages/modal";
-import axios from "axios";
 import Link from "next/link";
+import { Cart } from "../components/Cart";
 
 interface HomeProps {
   products: {
@@ -39,10 +30,7 @@ interface ProductProps {
 
 export default function Home({ products }: HomeProps) {
   const { setState } = useContext(Contexto);
-  const { isOpenModal, setOpenModal } = useContext(Contexto);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isCreatingCheckoutSession, setCreatingCheckoutSession] =
-    useState(false);
   const [addedProducts, setAddedProducts] = useState<{
     [key: string]: boolean;
   }>({});
@@ -66,38 +54,6 @@ export default function Home({ products }: HomeProps) {
     }
   }
 
-  function handleCloseModal() {
-    setOpenModal(false);
-  }
-
-  const PriceTotal = selectedProducts
-    .reduce((acc, curr) => {
-      return acc + parseFloat(curr.price.replace(",", ".").replace("R$", ""));
-    }, 0)
-    .toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-  async function handleBuyProduct() {
-    try {
-      setCreatingCheckoutSession(true);
-      const response = await axios.post("/api/checkout", {
-        priceId: selectedProducts,
-      });
-
-      const { checkoutUrl } = response.data;
-      window.location.href = checkoutUrl;
-    } catch (err) {
-      setCreatingCheckoutSession(false);
-
-      alert("Falha ao redirecionar");
-    }
-  }
-
-  function handleDeleteProduct(produc) {
-    const deleteProduct = selectedProducts.filter((allProduc) => {
-      return allProduc !== produc;
-    });
-    setSelectedProducts(deleteProduct);
-  }
   return (
     <>
       <Head>
@@ -137,71 +93,10 @@ export default function Home({ products }: HomeProps) {
         })}
       </HomeContainer>
 
-      {isOpenModal && (
-        <ModalContainer
-          isOpen={isOpenModal}
-          onRequestClose={handleCloseModal}
-          style={{
-            overlay: {
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-            },
-          }}
-        >
-          <h2
-            style={{
-              textAlign: "center",
-              paddingTop: "70px",
-              paddingBottom: "8px",
-            }}
-          >
-            Sacola de Compras
-          </h2>
-
-          {selectedProducts.length ? (
-            selectedProducts.map((produc) => {
-              return (
-                <ModalContent key={produc.id}>
-                  <BackImage>
-                    <Image
-                      src={produc.imageUrl}
-                      alt="camiseta"
-                      width={100}
-                      height={90}
-                    />
-                  </BackImage>
-
-                  <DescProductModal>
-                    <strong>{produc.name}</strong>
-                    <span>{produc.price}</span>
-                    <button onClick={() => handleDeleteProduct(produc)}>
-                      Remover
-                    </button>
-                  </DescProductModal>
-                </ModalContent>
-              );
-            })
-          ) : (
-            <MsgErrorModal>
-              <p>Você não possui produto no carrinho.</p>
-            </MsgErrorModal>
-          )}
-
-          {selectedProducts.length > 0 && (
-            <ModalFooter>
-              <div>
-                <p>Quantidade:</p>
-                <span>{selectedProducts.length} itens</span>
-              </div>
-              <div>
-                <p>Valor total:</p>
-                <strong>{PriceTotal}</strong>
-              </div>
-
-              <button onClick={handleBuyProduct}>Finalizar Compra</button>
-            </ModalFooter>
-          )}
-        </ModalContainer>
-      )}
+      <Cart
+        selectedProducts={selectedProducts}
+        setSelectedProducts={setSelectedProducts}
+      />
     </>
   );
 }
