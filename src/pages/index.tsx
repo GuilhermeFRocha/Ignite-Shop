@@ -51,7 +51,7 @@ export default function Home({ products }: HomeProps) {
     },
   });
 
-  const idsProducts = selectedProducts.map((ids) => {
+  const idsProducts = selectedProducts.map((ids: any) => {
     return ids.id;
   });
 
